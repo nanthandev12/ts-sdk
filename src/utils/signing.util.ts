@@ -1,0 +1,50 @@
+import { encode } from "@msgpack/msgpack";
+import { keccak256 } from "viem";
+
+export async function signAction(
+  args: {
+    wallet: any;
+    action: unknown;
+    txType: number;
+  },
+  options?: {
+    isTestnet: boolean;
+  }
+) {
+  const isTestnet = options?.isTestnet ?? false;
+
+  const actionBytes = encode(args.action);
+
+  const payloadHash = keccak256(actionBytes);
+
+  const domain = {
+    name: "HotstuffCore",
+    version: "1",
+    chainId: 1,
+    verifyingContract:
+      "0x1234567890123456789012345678901234567890" as `0x${string}`,
+  };
+
+  const types = {
+    Action: [
+      { name: "source", type: "string" },
+      { name: "hash", type: "bytes32" },
+      { name: "txType", type: "uint16" },
+    ],
+  };
+
+  const eip712Message = {
+    source: isTestnet ? "Testnet" : "Mainnet",
+    hash: payloadHash,
+    txType: args.txType,
+  };
+
+  const signature = await args.wallet.signTypedData({
+    domain,
+    types,
+    primaryType: "Action",
+    message: eip712Message,
+  });
+
+  return signature;
+}

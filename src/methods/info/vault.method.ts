@@ -1,0 +1,21 @@
+import { Address } from 'viem';
+
+/** Vaults Method */
+export interface IVaultsParams {}
+
+export interface IVaultsResponse {}
+
+/** Sub Vaults Method */
+export interface ISubVaultsParams {
+  vaultAddress: Address;
+}
+
+export interface ISubVaultsResponse {}
+
+/** Vault Balances Method */
+export interface IVaultBalancesParams {
+  vaultAddress: Address;
+  user?: Address;
+}
+
+export interface IVaultBalancesResponse {}
