@@ -1,6 +1,6 @@
 {
   "name": "@hotstuff-labs/ts-sdk",
-  "version": "0.0.1-beta.3",
+  "version": "0.0.1-beta.7",
   "description": "TypeScript SDK for Hotstuff Labs",
   "type": "module",
   "main": "dist/index.js",
@@ -21,13 +21,9 @@
     "build": "tsc -p tsconfig.json",
     "prepublishOnly": "npm run build"
   },
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
-  },
   "engines": {
     "node": ">=18.17"
   },
-  "repository": "github:hotstuff-labs/ts-sdk",
   "author": "hotstuff",
   "license": "MIT",
   "dependencies": {
