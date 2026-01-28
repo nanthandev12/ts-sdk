@@ -4,6 +4,8 @@ import { signAction, NonceManager } from '../utils';
 import {
   AccountExchangeMethods as AM,
   TradingExchangeMethods as TM,
+  CollateralExchangeMethods as CM,
+  VaultExchangeMethods as VM,
   EXCHANGE_OP_CODES,
 } from '../methods';
 
@@ -18,7 +20,7 @@ export class ExchangeClient<T extends TT.IRequestTransport, W> {
     this.nonce = args.nonce ?? new NonceManager().getNonce;
   }
 
-  /**---Account Actions---*/
+  /**---Account Management Methods---*/
   async addAgent(params: AM.IAddAgentMethodParams, execute = true, opts?: any): Promise<any> {
     let nonce = await this.nonce();
 
@@ -45,7 +47,32 @@ export class ExchangeClient<T extends TT.IRequestTransport, W> {
     return this._executeAction({ action: 'addAgent', params }, opts?.signal, execute);
   }
 
-  /**---Trading Actions---*/
+  async revokeAgent(params: AM.IRevokeAgentMethodParams,  opts?: any): Promise<any> {
+    return this._executeAction({ action: 'revokeAgent', params }, opts?.signal);
+  }
+
+  async updatePerpInstrumentLeverage(params: AM.IUpdatePerpInstrumentLeverageMethodParams,  opts?: any): Promise<any> {
+    return this._executeAction({ action: 'updatePerpInstrumentLeverage', params }, opts?.signal);
+  }
+
+  async approveBrokerFee(params: AM.IApproveBrokerFeeMethodParams,  opts?: any): Promise<any> {
+    return this._executeAction({ action: 'approveBrokerFee', params }, opts?.signal);
+  }
+
+  async createReferralCode(params: AM.ICreateReferralCodeMethodParams,  opts?: any): Promise<any> {
+    return this._executeAction({ action: 'createReferralCode', params }, opts?.signal);
+  }
+
+  async setReferrer(params: AM.ISetReferrerMethodParams,  opts?: any): Promise<any> {
+    return this._executeAction({ action: 'setReferrer', params }, opts?.signal);
+  }
+
+  async claimReferralRewards(params: AM.IClaimReferralRewardsMethodParams,  opts?: any): Promise<any> {
+    return this._executeAction({ action: 'claimReferralRewards', params }, opts?.signal);
+  }
+
+
+  /**---Trading Methods---*/
   async placeOrder(params: TM.IPlaceOrderMethodParams, opts?: any): Promise<any> {
     return this._executeAction({ action: 'placeOrder', params }, opts?.signal);
   }
@@ -62,6 +89,35 @@ export class ExchangeClient<T extends TT.IRequestTransport, W> {
     return this._executeAction({ action: 'cancelAll', params }, opts?.signal);
   }
 
+  /**---Collateral Transfer Methods---*/
+  async accountSpotWithdrawRequest(params: CM.IAccountSpotWithdrawRequestMethodParams, opts?: any): Promise<any> {
+    return this._executeAction({ action: 'accountSpotWithdrawRequest', params }, opts?.signal);
+  }
+
+  async accountDerivativeWithdrawRequest(params: CM.IAccountDerivativeWithdrawRequestMethodParams, opts?: any): Promise<any> {
+    return this._executeAction({ action: 'accountDerivativeWithdrawRequest', params }, opts?.signal);
+  }
+
+  async accountSpotBalanceTransferRequest(params: CM.IAccountSpotBalanceTransferRequestMethodParams, opts?: any): Promise<any> {
+    return this._executeAction({ action: 'accountSpotBalanceTransferRequest', params }, opts?.signal);
+  }
+
+  async accountDerivativeBalanceTransferRequest(params: CM.IAccountDerivativeBalanceTransferRequestMethodParams, opts?: any): Promise<any> {
+    return this._executeAction({ action: 'accountDerivativeBalanceTransferRequest', params }, opts?.signal);
+  }
+
+  async accountInternalBalanceTransferRequest(params: CM.IAccountInternalBalanceTransferRequestMethodParams, opts?: any): Promise<any> {
+    return this._executeAction({ action: 'accountInternalBalanceTransferRequest', params }, opts?.signal);
+  }
+
+  /**---Vault Methods---*/
+  async depositToVault(params: VM.IDepositToVaultMethodParams, opts?: any): Promise<any> {
+    return this._executeAction({ action: 'depositToVault', params }, opts?.signal);
+  }
+
+  async redeemFromVault(params: VM.IRedeemFromVaultMethodParams, opts?: any): Promise<any> {
+    return this._executeAction({ action: 'redeemFromVault', params }, opts?.signal);
+  }
   /**---Private Methods---*/
   private async _executeAction(request: CT.IActionRequest, signal?: AbortSignal, execute = true) {
     const { action, params } = request;

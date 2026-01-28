@@ -255,7 +255,7 @@ await exchange.placeOrder({
     {
       instrumentId: 1,
       side: 'b', // 'b' for buy, 's' for sell
-      positionSide: 'LONG', // 'LONG', 'SHORT', or 'BOTH'
+      positionSide: 'BOTH', // 'LONG', 'SHORT', or 'BOTH'
       price: '50000.00',
       size: '0.1',
       tif: 'GTC', // 'GTC', 'IOC', or 'FOK'
@@ -308,6 +308,95 @@ await exchange.addAgent({
   agentPrivateKey: '0xprivatekey...',
   signer: '0xsigner...',
   validUntil: Math.floor(Date.now() / 1000) + 86400, // 24 hours
+});
+
+// Revoke an agent
+await exchange.revokeAgent({
+  agent: '0xagent...',
+  forAccount: '', // optional: sub-account address
+});
+
+// Update leverage for a perpetual instrument
+await exchange.updatePerpInstrumentLeverage({
+  instrumentId: 1,
+  leverage: 10, // 10x leverage
+});
+
+// Approve broker fee
+await exchange.approveBrokerFee({
+  broker: '0xbroker...',
+  maxFeeRate: '0.001', // 0.1% max fee
+});
+
+// Create a referral code
+await exchange.createReferralCode({
+  code: 'MY_REFERRAL_CODE',
+});
+
+// Set referrer using a referral code
+await exchange.setReferrer({
+  code: 'FRIEND_REFERRAL_CODE',
+});
+
+// Claim referral rewards
+await exchange.claimReferralRewards({
+  collateralId: 1,
+  spot: true, // true for spot account, false for derivatives
+});
+```
+
+#### Collateral Transfer Methods
+
+```typescript
+// Request spot collateral withdrawal to external chain
+await exchange.accountSpotWithdrawRequest({
+  collateralId: 1,
+  amount: '100.0',
+  chainId: 1, // Ethereum mainnet
+});
+
+// Request derivative collateral withdrawal to external chain
+await exchange.accountDerivativeWithdrawRequest({
+  collateralId: 1,
+  amount: '100.0',
+  chainId: 1,
+});
+
+// Transfer spot balance to another address on Hotstuff
+await exchange.accountSpotBalanceTransferRequest({
+  collateralId: 1,
+  amount: '50.0',
+  destination: '0xrecipient...',
+});
+
+// Transfer derivative balance to another address on Hotstuff
+await exchange.accountDerivativeBalanceTransferRequest({
+  collateralId: 1,
+  amount: '50.0',
+  destination: '0xrecipient...',
+});
+
+// Transfer balance between spot and derivatives accounts
+await exchange.accountInternalBalanceTransferRequest({
+  collateralId: 1,
+  amount: '25.0',
+  toDerivativesAccount: true, // true: spot -> derivatives, false: derivatives -> spot
+});
+```
+
+#### Vault Methods
+
+```typescript
+// Deposit to a vault
+await exchange.depositToVault({
+  vaultAddress: '0xvault...',
+  amount: '1000.0',
+});
+
+// Redeem shares from a vault
+await exchange.redeemFromVault({
+  vaultAddress: '0xvault...',
+  shares: '500.0',
 });
 ```
 
@@ -727,7 +816,7 @@ async function main() {
             {
               instrumentId: 1,
               side: 'b',
-              positionSide: 'LONG',
+              positionSide: 'BOTH',
               price: price.toString(),
               size: '0.1',
               tif: 'GTC',
@@ -752,6 +841,101 @@ async function main() {
 }
 
 main();
+```
+
+### Broker Fee with Agent Trading Example
+
+This example demonstrates the full flow of approving a broker fee from the main account, creating an agent, and placing orders through the agent with broker configuration.
+
+```typescript
+import { HttpTransport, ExchangeClient } from '@hotstuff-labs/ts-sdk';
+import { createWalletClient, http } from 'viem';
+import { mainnet } from 'viem/chains';
+import { privateKeyToAccount, generatePrivateKey } from 'viem/accounts';
+
+async function brokerAgentTradingExample() {
+  const httpTransport = new HttpTransport({ isTestnet: true });
+
+  // Main account setup (the account that will approve broker fees and create agent)
+  const mainAccount = privateKeyToAccount(process.env.MAIN_PRIVATE_KEY as `0x${string}`);
+  const mainWallet = createWalletClient({
+    account: mainAccount,
+    chain: mainnet,
+    transport: http(),
+  });
+
+  const mainExchange = new ExchangeClient({
+    transport: httpTransport,
+    wallet: mainWallet,
+  });
+
+  // Broker address that will receive fees
+  const brokerAddress = '0xBrokerAddress...' as `0x${string}`;
+
+  // Step 1: Approve broker fee from main account
+  console.log('Approving broker fee...');
+  await mainExchange.approveBrokerFee({
+    broker: brokerAddress,
+    maxFeeRate: '0.001', // 0.1% max fee rate
+  });
+  console.log('Broker fee approved!');
+
+  // Step 2: Generate agent credentials and add agent
+  const agentPrivateKey = generatePrivateKey();
+  const agentAccount = privateKeyToAccount(agentPrivateKey);
+
+  console.log('Adding agent...');
+  await mainExchange.addAgent({
+    agentName: 'broker-trading-agent',
+    agent: agentAccount.address,
+    forAccount: '',
+    agentPrivateKey: agentPrivateKey,
+    signer: mainAccount.address,
+    validUntil: Math.floor(Date.now() / 1000) + 86400 * 30, // Valid for 30 days
+  });
+  console.log('Agent added:', agentAccount.address);
+
+  // Step 3: Create exchange client for the agent
+  const agentWallet = createWalletClient({
+    account: agentAccount,
+    chain: mainnet,
+    transport: http(),
+  });
+
+  const agentExchange = new ExchangeClient({
+    transport: httpTransport,
+    wallet: agentWallet,
+  });
+
+  // Step 4: Place order from agent with broker config
+  console.log('Placing order with broker fee...');
+  await agentExchange.placeOrder({
+    orders: [
+      {
+        instrumentId: 1,
+        side: 'b',
+        positionSide: 'BOTH',
+        price: '50000.00',
+        size: '0.1',
+        tif: 'GTC',
+        ro: false,
+        po: false,
+        cloid: `broker-order-${Date.now()}`,
+      },
+    ],
+    brokerConfig: {
+      broker: brokerAddress,
+      fee: '0.0005', // 0.05% fee (must be <= approved maxFeeRate)
+    },
+    expiresAfter: Math.floor(Date.now() / 1000) + 3600,
+  });
+  console.log('Order placed with broker fee!');
+
+  // Optional: Revoke agent when done
+  // await mainExchange.revokeAgent({ agent: agentAccount.address });
+}
+
+brokerAgentTradingExample();
 ```
 
 ---
