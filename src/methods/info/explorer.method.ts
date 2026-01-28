@@ -4,7 +4,22 @@ export interface IBlocksMethodParams {
   limit: number;
 }
 
-export interface IBlocksMethodResponse {}
+export interface IBlock {
+  block_height: number,
+  block_hash: string,
+  parent_hash: string,
+  change_log_hash: string,
+  timestamp: number,
+  tx_count: number,
+  created_at: number,
+}
+
+export interface IBlocksMethodResponse {
+  blocks: IBlock[],
+  total: number,
+  limit: number,
+  offset: number,
+}
 
 /**Block Method */
 export interface IBlockDetailsMethodParams {
@@ -12,7 +27,7 @@ export interface IBlockDetailsMethodParams {
   block_height?: number;
 }
 
-export interface IBlockDetailsMethodResponse {}
+export interface IBlockDetailsMethodResponse { }
 
 /**Transactions Method */
 export interface ITransactionsMethodParams {
@@ -24,7 +39,7 @@ export interface ITransactionsMethodParams {
   };
 }
 
-export interface ITransactionsMethodResponse {}
+export interface ITransactionsMethodResponse { }
 
 /**Transaction Method */
 
@@ -32,4 +47,4 @@ export interface ITransactionDetailsMethodParams {
   tx_hash: string;
 }
 
-export interface ITransactionDetailsMethodResponse {}
+export interface ITransactionDetailsMethodResponse { }

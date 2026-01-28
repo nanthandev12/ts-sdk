@@ -231,42 +231,9 @@ export class InfoClient<T extends TT.IRequestTransport> {
     return this.transport.request('info', request, signal);
   }
 
-  async getReferralInfo(
-    params: AM.IReferralInfoParams,
-    signal?: AbortSignal,
-  ): Promise<AM.IReferralInfoResponse> {
-    const request = {
-      method: 'referralInfo',
-      params,
-    };
-    return this.transport.request('info', request, signal);
-  }
-
-  async subAccountsList(
-    params: AM.ISubAccountsListParams,
-    signal?: AbortSignal,
-  ): Promise<AM.ISubAccountsListResponse> {
-    const request = {
-      method: 'subAccountsList',
-      params,
-    };
-    return this.transport.request('info', request, signal);
-  }
-
   async agents(params: AM.IAgentsParams, signal?: AbortSignal): Promise<AM.IAgentsResponse> {
     const request = {
       method: 'allAgents',
-      params,
-    };
-    return this.transport.request('info', request, signal);
-  }
-
-  async userBalance(
-    params: AM.IUserBalanceInfoParams,
-    signal?: AbortSignal,
-  ): Promise<AM.IUserBalanceInfoResponse> {
-    const request = {
-      method: 'userBalance',
       params,
     };
     return this.transport.request('info', request, signal);

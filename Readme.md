@@ -82,14 +82,14 @@ const info = new InfoClient({ transport });
 #### Market Data Methods
 
 ```typescript
-// Get all instruments (perps, spot, options)
-const instruments = await info.instruments({ type: 'all' });
+// Get all instruments (perps, spot)
+const instruments = await info.instruments({ type: 'all' }); // 'perps', 'spot', or 'all'
 
 // Get supported collateral
 const collateral = await info.supportedCollateral({});
 
-// Get oracle prices
-const oracle = await info.oracle({});
+// Get oracle prices for a symbol
+const oracle = await info.oracle({ symbol: 'BTC' });
 
 // Get ticker for a specific symbol
 const ticker = await info.ticker({ symbol: 'BTC-PERP' });
@@ -106,11 +106,13 @@ const mids = await info.mids({});
 // Get best bid/offer
 const bbo = await info.bbo({ symbol: 'BTC-PERP' });
 
-// Get chart data (candles or funding)
+// Get chart data
 const chart = await info.chart({
   symbol: 'BTC-PERP',
-  resolution: '1h',
-  chart_type: 'candles',
+  resolution: '60', // '1', '5', '15', '60', '240', '1D', '1W'
+  chart_type: 'mark', // 'mark', 'ltp', 'index'
+  from: Math.floor(Date.now() / 1000) - 86400, // start timestamp
+  to: Math.floor(Date.now() / 1000), // end timestamp
 });
 ```
 
@@ -122,39 +124,51 @@ const userAddress = '0x1234...';
 // Get account summary
 const summary = await info.accountSummary({ user: userAddress });
 
-// Get account info
-const accountInfo = await info.accountInfo({ user: userAddress });
+// Get account info (with optional collateral ID and history)
+const accountInfo = await info.accountInfo({
+  user: userAddress,
+  collateralID: 1, // optional
+  includeHistory: true, // optional
+});
 
-// Get user balance
-const balance = await info.userBalance({ user: userAddress });
-
-// Get open orders
-const openOrders = await info.openOrders({ user: userAddress });
+// Get open orders (with pagination)
+const openOrders = await info.openOrders({
+  user: userAddress,
+  page: 1, // optional
+  limit: 50, // optional
+});
 
 // Get current positions
-const positions = await info.positions({ user: userAddress });
+const positions = await info.positions({
+  user: userAddress,
+  instrument: 'BTC-PERP', // optional: filter by instrument
+});
 
 // Get order history
 const orderHistory = await info.orderHistory({
   user: userAddress,
-  limit: 100,
+  instrumentId: 'BTC-PERP', // optional
+  limit: 100, // optional
 });
 
 // Get trade history (fills)
-const tradeHistory = await info.tradeHistory({ user: userAddress });
+const tradeHistory = await info.tradeHistory({
+  user: userAddress,
+  instrumentId: 'BTC-PERP', // optional
+  limit: 50, // optional
+});
 
 // Get funding history
 const fundingHistory = await info.fundingHistory({ user: userAddress });
 
 // Get transfer history
-const transferHistory = await info.transferHistory({ user: userAddress });
-
-// Get account history with time range
-const accountHistory = await info.accountHistory({
+const transferHistory = await info.transferHistory({
   user: userAddress,
-  from: Math.floor(Date.now() / 1000) - 86400, // 24h ago
-  to: Math.floor(Date.now() / 1000),
+  limit: 50, // optional
 });
+
+// Get account history
+const accountHistory = await info.accountHistory({ user: userAddress });
 
 // Get user fee information
 const feeInfo = await info.userFeeInfo({ user: userAddress });
@@ -162,17 +176,11 @@ const feeInfo = await info.userFeeInfo({ user: userAddress });
 // Get instrument leverage settings
 const leverage = await info.instrumentLeverage({
   user: userAddress,
-  instrumentId: 1,
+  symbol: 'BTC-PERP',
 });
-
-// Get referral info
-const referralInfo = await info.getReferralInfo({ user: userAddress });
 
 // Get referral summary
 const referralSummary = await info.referralSummary({ user: userAddress });
-
-// Get sub-accounts list
-const subAccounts = await info.subAccountsList({ user: userAddress });
 
 // Get agents
 const agents = await info.agents({ user: userAddress });
