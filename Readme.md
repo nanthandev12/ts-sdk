@@ -947,3 +947,48 @@ brokerAgentTradingExample();
 ```
 
 ---
+
+## Signing
+
+### How Signing Works
+
+The SDK uses EIP-712 typed data signing for all exchange actions. Here's what happens under the hood:
+
+1. **Action Encoding**: The action payload is encoded using MessagePack
+2. **Hashing**: The encoded bytes are hashed with keccak256
+3. **EIP-712 Signing**: The hash is signed using EIP-712 typed data with the following structure:
+
+```typescript
+const domain = {
+  name: 'HotstuffCore',
+  version: '1',
+  chainId: 1,
+  verifyingContract: '0x1234567890123456789012345678901234567890',
+};
+
+const types = {
+  Action: [
+    { name: 'source', type: 'string' },    // "Testnet" or "Mainnet"
+    { name: 'hash', type: 'bytes32' },     // keccak256 of msgpack-encoded action
+    { name: 'txType', type: 'uint16' },    // transaction type identifier
+  ],
+};
+```
+
+### Debugging Signature Issues
+
+It is recommended to use an existing SDK instead of manually generating signatures. There are many potential ways in which signatures can be wrong. An incorrect signature results in recovering a different signer based on the signature and payload and results in one of the following errors:
+
+```
+"Error: account does not exist."
+```
+
+```
+"invalid order signer"
+```
+
+where the returned address does not match the public address of the wallet you are signing with. The returned address also changes for different inputs.
+
+An incorrect signature does not indicate why it is incorrect which makes debugging more challenging. To debug this it is recommended to read through the SDK carefully and make sure the implementation matches exactly. If that doesn't work, add logging to find where the output diverges.
+
+---
