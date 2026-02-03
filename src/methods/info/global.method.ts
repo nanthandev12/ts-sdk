@@ -22,10 +22,10 @@ export interface ISupportedCollateral {
   price_index: string;
   type: number;
   bridge_by_chain: {
-    bridge_chain_type: number;
-    bridge_chain_id: number;
-    token_address: string;
-    bridge_contract_address: string;
+    bridgeChainType: number;
+    bridgeChainId: number;
+    tokenAddress: string;
+    bridgeContractAddress: string;
     enabled: boolean;
   }[];
   coll_risk: {
