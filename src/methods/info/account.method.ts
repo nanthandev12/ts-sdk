@@ -11,10 +11,10 @@ export interface IOpenOrdersResponse {
   data: IOpenOrder[];
   page: number;
   limit: number;
-  totalCount: number;
-  totalPages: number;
-  hasNext: boolean;
-  hasPrev: boolean;
+  total_count: number;
+  total_pages: number;
+  has_next: boolean;
+  has_prev: boolean;
 }
 
 export interface IOpenOrder {
@@ -249,10 +249,10 @@ export interface IOrderHistoryResponse {
   data: IOrderHistory[],
   page: number,
   limit: number,
-  totalCount: number,
-  totalPages: number,
-  hasNext: boolean,
-  hasPrev: boolean,
+  total_count: number,
+  total_pages: number,
+  has_next: boolean,
+  has_prev: boolean,
 }
 
 /**Trade History Method */
@@ -291,7 +291,7 @@ export interface ITradeHistoryResponse {
   data: ITradeHistory[],
   page: number,
   limit: number,
-  totalCount: number,
+  total_count: number,
   totalPages: number,
   hasNext: boolean,
   hasPrev: boolean,
@@ -317,10 +317,10 @@ export interface IFundingHistoryResponse {
   data: IFundingHistory[],
   page: number,
   limit: number,
-  totalCount: number,
-  totalPages: number,
-  hasNext: boolean,
-  hasPrev: boolean,
+  total_count: number,
+  total_pages: number,
+  has_next: boolean,
+  has_prev: boolean,
 }
 
 /**Transfer History Method */
@@ -349,11 +349,11 @@ export interface IInstrumentLeverageParams {
 
 export interface IInstrumentLeverageResponse {
   address: Address,
-  InstrumentId: number,
-  Instrument: string,
-  MarginType: "cross" | "isolated",
-  Leverage: string,
-  UpdatedAt: number,
+  instrument_id: number,
+  instrument: string,
+  margin_type: "cross" | "isolated",
+  leverage: string,
+  updated_at: number,
 }
 
 /**Agents Method */
