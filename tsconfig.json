@@ -3,7 +3,7 @@
       "outDir": "./dist",
       "rootDir": "./src",
       "target": "ES2020",
-      "module": "ES2020",
+      "module": "CommonJS",
       "declaration": true,
       "declarationMap": true,
       "sourceMap": true,
@@ -14,7 +14,7 @@
       "forceConsistentCasingInFileNames": true,
       "strictNullChecks": false,
       "baseUrl": ".",
-      "moduleResolution": "bundler"
+      "moduleResolution": "node"
     },
     "include": ["src/**/*"]
 }

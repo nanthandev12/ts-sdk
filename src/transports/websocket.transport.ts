@@ -235,9 +235,16 @@ export class WebSocketTransport {
         this.ws = new WebSocket(url);
 
         this.ws.onopen = () => {
+          const wasReconnect = this.reconnectAttempts > 0;
           this.reconnectAttempts = 0;
           this.startKeepAlive();
           resolve();
+
+          // Re-subscribe all existing subscriptions after reconnect
+          if (wasReconnect && this.subscriptions.size > 0) {
+            console.log(`[WS] Reconnected — re-subscribing ${this.subscriptions.size} channel(s)...`);
+            this.resubscribeAll();
+          }
         };
 
         this.ws.onmessage = (event) => {
@@ -251,12 +258,19 @@ export class WebSocketTransport {
 
         this.ws.onclose = (event) => {
           this.cleanup();
+          this.connectionPromise = null;
 
           if (this.reconnectAttempts < this.maxReconnectAttempts) {
+            const delay = this.reconnectDelay * Math.max(1, this.reconnectAttempts);
+            console.log(`[WS] Connection closed. Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts + 1}/${this.maxReconnectAttempts})...`);
             setTimeout(() => {
               this.reconnectAttempts++;
-              this.connect();
-            }, this.reconnectDelay * this.reconnectAttempts);
+              this.connectionPromise = this.connect().catch((err) => {
+                console.error('[WS] Reconnect failed:', err);
+              });
+            }, delay);
+          } else {
+            console.error(`[WS] Max reconnect attempts (${this.maxReconnectAttempts}) reached. Giving up.`);
           }
         };
 
@@ -314,7 +328,7 @@ export class WebSocketTransport {
       channel,
       symbol:
         (payload as Record<string, any>)?.instrumentId || (payload as Record<string, any>)?.symbol,
-      params: payload as Record<string, any>,
+      params: { ...(payload as Record<string, any>), _originalChannel: channel },
       timestamp: Date.now(),
     };
 
@@ -379,5 +393,25 @@ export class WebSocketTransport {
 
   getSubscriptions(): TT.ISubscription[] {
     return Array.from(this.subscriptions.values());
+  }
+
+  private async resubscribeAll(): Promise<void> {
+    for (const [subscriptionId, subscription] of this.subscriptions.entries()) {
+      try {
+        const originalChannel = subscription.params?._originalChannel || subscription.channel;
+        const { _originalChannel, ...payload } = subscription.params || {};
+        const params = this.formatSubscriptionParams(originalChannel, payload);
+        const result = await this.subscribeToChannels(params);
+
+        if (result.status === 'subscribed' && result.channels && result.channels.length > 0) {
+          subscription.channel = result.channels[0];
+          console.log(`[WS] Re-subscribed to ${subscription.channel}`);
+        } else {
+          console.error(`[WS] Failed to re-subscribe ${subscriptionId}: ${result.status} ${result.error || ''}`);
+        }
+      } catch (error) {
+        console.error(`[WS] Re-subscribe error for ${subscriptionId}:`, error);
+      }
+    }
   }
 }
