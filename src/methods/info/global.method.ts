@@ -11,7 +11,7 @@ export interface IOracleMethodResponse {
 }
 
 /**Supported Collateral */
-export interface ISupportedCollateralMethodParams {}
+export interface ISupportedCollateralMethodParams { }
 
 export interface ISupportedCollateral {
   id: number;
@@ -155,7 +155,7 @@ export interface ITrade {
 export type ITradesMethodResponse = ITrade[];
 
 /**Mids */
-export interface IMidsMethodParams {}
+export interface IMidsMethodParams { }
 
 export interface IMid {
   symbol: string;
