@@ -21,7 +21,8 @@ export class HttpTransport {
   constructor(options?: TT.IHttpTransportOptions) {
     this.isTestnet = options?.isTestnet ?? false;
 
-    this.timeout = options?.timeout ?? 3_000;
+    // Explicitly check if timeout is provided to distinguish null (no timeout) from undefined (use default)
+    this.timeout = options && 'timeout' in options ? options.timeout : 3_000;
 
     this.server = {
       mainnet: {

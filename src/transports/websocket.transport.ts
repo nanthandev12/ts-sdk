@@ -25,6 +25,7 @@ export class WebSocketTransport {
     id: string;
     resolve: Function;
     reject: Function;
+    timeoutId?: NodeJS.Timeout;
   }> = [];
 
   private messageIdCounter: number = 0;
@@ -76,7 +77,10 @@ export class WebSocketTransport {
       this.keepAliveInterval = undefined;
     }
 
-    this.messageQueue.forEach(({ reject }) => {
+    this.messageQueue.forEach(({ reject, timeoutId }) => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
       reject(new Error('WebSocket disconnected'));
     });
 
@@ -86,7 +90,13 @@ export class WebSocketTransport {
   private startKeepAlive(): void {
     if (this.keepAlive?.interval) {
       this.keepAliveInterval = setInterval(() => {
-        this.ping();
+        this.ping().catch((error) => {
+          console.error('[WS] Keepalive ping timeout - forcing reconnect:', error);
+          // Close connection to trigger reconnect logic
+          if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            this.ws.close();
+          }
+        });
       }, this.keepAlive.interval);
     }
   }
@@ -155,18 +165,19 @@ export class WebSocketTransport {
       }
 
       if (message.id !== undefined) {
+        const timeoutId = this.timeout
+          ? setTimeout(() => {
+              this.messageQueue = this.messageQueue.filter((qm) => qm.id !== message.id);
+              reject(new Error('Request timeout'));
+            }, this.timeout)
+          : undefined;
+
         this.messageQueue.push({
           id: message.id as string,
           resolve,
           reject,
+          timeoutId,
         });
-
-        if (this.timeout) {
-          setTimeout(() => {
-            this.messageQueue = this.messageQueue.filter((qm) => qm.id !== message.id);
-            reject(new Error('Request timeout'));
-          }, this.timeout);
-        }
       }
 
       const messageStr = JSON.stringify(message);
