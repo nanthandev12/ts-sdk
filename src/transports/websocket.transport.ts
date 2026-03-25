@@ -64,7 +64,9 @@ export class WebSocketTransport {
 
     if (this.connectionPromise) {
       await this.connectionPromise;
-      return;
+      if (this.ws?.readyState === WebSocket.OPEN) {
+        return;
+      }
     }
 
     this.connectionPromise = this.connect();
@@ -114,9 +116,10 @@ export class WebSocketTransport {
   }
 
   private handleJSONRPCResponse(response: TT.JSONRPCResponse): void {
-    const queueItem = this.messageQueue.find((item) => item.id === response.id);
+    const responseId = String(response.id);
+    const queueItem = this.messageQueue.find((item) => item.id === responseId);
     if (queueItem) {
-      this.messageQueue = this.messageQueue.filter((item) => item.id !== response.id);
+      this.messageQueue = this.messageQueue.filter((item) => item.id !== responseId);
 
       if (response.error) {
         queueItem.reject(
